@@ -23,7 +23,7 @@
       <a href="dangky.html" class="nav-link-auth nav-link-auth-primary" id="register-link">Đăng ký</a>
       <button id="logout-btn" class="nav-link-auth nav-link-auth-primary" style="display:none;">Đăng xuất</button>
 
-      <!-- Menu khách hàng + hỗ trợ -->
+    
       <div class="account-menu" id="account-menu">
         <span class="account-menu-icon">👤</span>
         <div class="account-dropdown" id="account-dropdown">
@@ -32,7 +32,7 @@
         </div>
       </div>
 
-      <!-- Giỏ hàng -->
+     
       <div class="cart" id="cart">
         🛒 <span>Giỏ</span>
         <span class="cart-count" id="cart-count">0</span>
@@ -55,7 +55,7 @@
   <section class="hero fade-in">
     <h1>HaiHand cũ nhưng chất</h1>
     <p>Lét gô - Mua đê bờ rô</p>
-    <!-- Nút hero có rồng SVG -->
+  
     <button class="btn-primary dragon-btn" onclick="scrollToProducts()">
       <span class="dragon-label">Khám phá ngay</span>
       <svg class="dragon-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -99,7 +99,7 @@
   </section>
 </main>
 
-<!-- Modal Thông tin khách hàng -->
+
 <div class="modal" id="customer-modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeCustomerModal()">×</span>
@@ -113,7 +113,7 @@
   </div>
 </div>
 
-<!-- Modal Hỗ trợ -->
+
 <div class="modal" id="support-modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeSupportModal()">×</span>
@@ -127,7 +127,7 @@
   </div>
 </div>
 
-<!-- Modal Thanh toán (dùng chung cho giỏ hàng) -->
+
 <div class="modal" id="payment-modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closePaymentModal()">×</span>
@@ -172,7 +172,6 @@
       </label>
     </div>
 
-    <!-- Hướng dẫn chi tiết theo từng phương thức -->
     <div id="payment-extra" style="margin-top:6px;"></div>
 
     <button id="payment-confirm-btn" class="btn-primary" onclick="confirmPayment()">
@@ -181,7 +180,6 @@
   </div>
 </div>
 
-<!-- TOAST THÔNG BÁO -->
 <div id="toast" class="toast" style="display:none;"></div>
 
 <footer>
@@ -193,7 +191,7 @@
 <script>
 const products = ThriftC.products;
 
-// Render sản phẩm
+
 function renderProducts(list){
   const grid=document.getElementById('product-grid');
   grid.innerHTML='';
@@ -232,7 +230,7 @@ function applyFilters(){
   renderProducts(list);
 }
 
-// Toast helper
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -246,7 +244,7 @@ function showToast(msg){
   }, 2000);
 }
 
-// Giỏ hàng
+
 function addToCart(id){
   const res = ThriftC.addToCart(id);
   if(!res.added && res.reason==='exists'){
@@ -284,7 +282,7 @@ function updateCartUI(){
   total.textContent=ThriftC.formatPrice(sum);
 }
 
-// User UI
+
 function updateUserUI(){
   const user=ThriftC.getCurrentUser();
   const navUser=document.getElementById('nav-user');
@@ -310,12 +308,12 @@ document.getElementById('logout-btn').addEventListener('click',()=>{
   showToast('Đã đăng xuất tài khoản.');
 });
 
-// Hamburger menu
+
 document.getElementById('hamburger').addEventListener('click',()=>{
   document.getElementById('nav-links').classList.toggle('open');
 });
 
-// Dropdown giỏ hàng
+
 const cartElem = document.getElementById('cart');
 const dropdown = document.getElementById('cart-dropdown');
 function showDropdown(){ dropdown.classList.add('visible'); }
@@ -331,14 +329,14 @@ cartElem.addEventListener('mouseleave',hideDropdownIfOut);
 dropdown.addEventListener('mouseenter',showDropdown);
 dropdown.addEventListener('mouseleave',hideDropdownIfOut);
 
-// Menu account
+
 const accMenu = document.getElementById('account-menu');
 const accDropdown = document.getElementById('account-dropdown');
 accMenu.addEventListener('click',()=>{
   accDropdown.classList.toggle('visible');
 });
 
-// ====== THÔNG TIN KHÁCH HÀNG ======
+
 function openCustomerModal(){
   const user = ThriftC.getCurrentUser();
   if(!user){
@@ -389,7 +387,7 @@ function saveCustomerInfo(){
   closeCustomerModal();
 }
 
-// Hỗ trợ
+
 function openSupportModal(){
   document.getElementById('support-modal').style.display='flex';
 }
@@ -397,7 +395,6 @@ function closeSupportModal(){
   document.getElementById('support-modal').style.display='none';
 }
 
-// ====== ĐIỀU KIỆN THANH TOÁN + POPUP THANH TOÁN ======
 function ensureUserReady(){
   const user = ThriftC.getCurrentUser();
   if(!user){
@@ -416,7 +413,7 @@ function ensureUserReady(){
 let currentPurchase = [];
 const paymentProcessState = {
   method: 'Thanh toán khi nhận',
-  step: 'select'   // select -> confirm
+  step: 'select'  
 };
 
 function openCartPayment(){
@@ -428,7 +425,7 @@ function openCartPayment(){
   }
   currentPurchase = cart;
 
-  // render tóm tắt vào modal
+  
   let html = '';
   let total = 0;
   cart.forEach(i=>{
@@ -451,13 +448,13 @@ function openCartPayment(){
     </div>`;
   document.getElementById('payment-summary').innerHTML = html;
 
-  // reset state khi mở
+ 
   paymentProcessState.step = 'select';
   const btn = document.getElementById('payment-confirm-btn');
   if(btn) btn.textContent = 'Xác nhận thanh toán';
 
   openPaymentModal();
-  updatePaymentExtra(); // cập nhật hướng dẫn theo phương thức đang chọn
+  updatePaymentExtra(); 
 }
 
 function openPaymentModal(){
@@ -468,14 +465,14 @@ function closePaymentModal(){
   paymentProcessState.step = 'select';
 }
 
-// Hướng dẫn cụ thể cho từng phương thức
+
 function updatePaymentExtra(){
   const selected = document.querySelector('input[name="payment-method"]:checked');
   const extra = document.getElementById('payment-extra');
   if(!selected || !extra) return;
   const method = selected.value;
   paymentProcessState.method = method;
-  paymentProcessState.step = 'select'; // khi đổi phương thức thì reset về bước 1
+  paymentProcessState.step = 'select';
 
   if(method === 'Momo'){
     extra.style.display = 'block';
@@ -522,7 +519,7 @@ function updatePaymentExtra(){
       </p>
     `;
   } else {
-    // Thanh toán khi nhận
+
     extra.style.display = 'none';
     extra.innerHTML = '';
   }
@@ -547,7 +544,7 @@ function confirmPayment(){
   const info = ThriftC.getCustomerInfo();
   const total = currentPurchase.reduce((s,i)=>s+i.price*i.qty,0);
 
-  // COD: tạo đơn luôn
+
   if(method === 'Thanh toán khi nhận'){
     const order = {
       id: Date.now(),
@@ -567,7 +564,7 @@ function confirmPayment(){
     return;
   }
 
-  // Các phương thức chuyển khoản: 2 bước
+ 
   if(paymentProcessState.step === 'select'){
     paymentProcessState.step = 'confirm';
     const btn = document.getElementById('payment-confirm-btn');
@@ -576,7 +573,6 @@ function confirmPayment(){
     return;
   }
 
-  // Bước xác nhận cuối
   const order = {
     id: Date.now(),
     date: new Date().toLocaleString('vi-VN'),
@@ -596,7 +592,7 @@ function confirmPayment(){
   showToast('Đặt hàng thành công! Cảm ơn bạn đã thanh toán.');
 }
 
-// Gắn event cho radio thanh toán
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('input[name="payment-method"]').forEach(r => {
     r.addEventListener('change', updatePaymentExtra);
@@ -604,16 +600,17 @@ document.addEventListener('DOMContentLoaded', () => {
   updatePaymentExtra();
 });
 
-// Khác
+
 function scrollToProducts(){
   document.getElementById('products').scrollIntoView({behavior:'smooth'});
 }
 
-// Init
+
 applyFilters();
 updateCartUI();
 updateUserUI();
 </script>
 </body>
 </html>
+
 
