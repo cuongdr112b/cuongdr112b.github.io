@@ -12,7 +12,7 @@
   <div class="nav">
     <div class="logo"><a href="index.html">ThriftC</a></div>
     <div class="nav-right">
-      <!-- Mini giỏ hàng giống trang chính -->
+    
       <div class="cart" id="cart">
         🛒 <span>Giỏ</span>
         <span class="cart-count" id="cart-count">0</span>
@@ -22,7 +22,7 @@
             <span>Tổng:</span>
             <strong id="cart-total">0₫</strong>
           </div>
-          <!-- Ở trang chi tiết, thanh toán vẫn dùng logic “order ngay” -->
+        
           <button type="button" class="btn-primary btn-cart-checkout" onclick="openCartPaymentFromDetail()">
             Thanh toán
           </button>
@@ -34,13 +34,13 @@
 
 <main class="product-detail fade-in">
   <div id="detail-wrapper" class="product-detail-content">
-    <!-- JS sẽ render nội dung chi tiết ở đây -->
+ 
   </div>
 </main>
 
 <section class="related-section fade-in" id="related"></section>
 
-<!-- Popup MUA NGAY (chỉ 1 sản phẩm hiện tại) -->
+
 <div class="modal" id="buy-modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeBuyModal()">×</span>
@@ -85,7 +85,7 @@
       </label>
     </div>
 
-    <!-- Hướng dẫn chi tiết theo phương thức -->
+
     <div id="buy-payment-extra" style="margin-top:6px;"></div>
 
     <button id="buy-confirm-btn" class="btn-primary" onclick="confirmBuyNow()">
@@ -94,7 +94,7 @@
   </div>
 </div>
 
-<!-- TOAST (dùng chung với thriftc.js) -->
+
 <div id="toast" class="toast" style="display:none;"></div>
 
 <footer>
@@ -106,11 +106,11 @@
 <script>
 const products = ThriftC.products;
 
-// Lấy id sản phẩm từ URL
+
 const id = parseInt(new URLSearchParams(location.search).get('id')) || 1;
 const p  = products.find(x => x.id === id) || products[0];
 
-// Render chi tiết sản phẩm
+
 function renderDetail() {
   const wrap = document.getElementById('detail-wrapper');
   wrap.innerHTML = `
@@ -139,7 +139,7 @@ function renderDetail() {
   `;
 }
 
-// Sản phẩm liên quan
+
 function renderRelated() {
   const list = products.filter(x => x.id !== p.id);
   if (!list.length) return;
@@ -160,7 +160,7 @@ function renderRelated() {
   document.getElementById('related').innerHTML = html;
 }
 
-// ========== TOAST (dùng chung) ==========
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -174,7 +174,7 @@ function showToast(msg){
   }, 2000);
 }
 
-// ================= GIỎ HÀNG MINI (GIỐNG TRANG CHÍNH) =================
+
 function addToCartDetail(pid) {
   const res = ThriftC.addToCart(pid);
   if(!res.added && res.reason === 'exists'){
@@ -214,7 +214,7 @@ function updateCartUI(){
   total.textContent = ThriftC.formatPrice(sum);
 }
 
-// Hover dropdown giỏ hàng
+
 const cartElem = document.getElementById('cart');
 const dropdown = document.getElementById('cart-dropdown');
 function showDropdown(){ dropdown.classList.add('visible'); }
@@ -230,7 +230,7 @@ cartElem.addEventListener('mouseleave',hideDropdownIfOut);
 dropdown.addEventListener('mouseenter',showDropdown);
 dropdown.addEventListener('mouseleave',hideDropdownIfOut);
 
-// ================== ĐIỀU KIỆN MUA HÀNG ==================
+
 function ensureCanCheckoutDetail() {
   const user = ThriftC.getCurrentUser();
   if(!user){
@@ -246,13 +246,13 @@ function ensureCanCheckoutDetail() {
   return true;
 }
 
-// ======= TRẠNG THÁI THANH TOÁN MUA NGAY =======
+
 const buyPaymentState = {
   method: 'Thanh toán khi nhận',
   step: 'select'
 };
 
-// Hướng dẫn chi tiết cho từng phương thức trong MUA NGAY
+
 function updateBuyPaymentExtra(){
   const selected = document.querySelector('input[name="buy-pay-method"]:checked');
   const extra = document.getElementById('buy-payment-extra');
@@ -313,7 +313,7 @@ function updateBuyPaymentExtra(){
   if(btn) btn.textContent = 'Xác nhận thanh toán';
 }
 
-// ============== MUA NGAY (CHỈ 1 SẢN PHẨM NÀY) ==============
+
 function openBuyModal() {
   if(!ensureCanCheckoutDetail()) return;
 
@@ -359,7 +359,7 @@ function confirmBuyNow() {
 
   const info = ThriftC.getCustomerInfo();
 
-  // COD: tạo đơn luôn
+
   if(method === 'Thanh toán khi nhận'){
     const order = {
       id: Date.now(),
@@ -376,7 +376,7 @@ function confirmBuyNow() {
     return;
   }
 
-  // Chuyển khoản: 2 bước
+
   if(buyPaymentState.step === 'select'){
     buyPaymentState.step = 'confirm';
     const btn = document.getElementById('buy-confirm-btn');
@@ -400,7 +400,7 @@ function confirmBuyNow() {
   closeBuyModal();
 }
 
-// ========== THANH TOÁN TỪ GIỎ HÀNG Ở TRANG CHI TIẾT ==========
+
 function openCartPaymentFromDetail(){
   if(!ensureCanCheckoutDetail()) return;
   const cart = ThriftC.getCart();
@@ -430,7 +430,7 @@ function openCartPaymentFromDetail(){
   showToast('Đặt hàng thành công từ giỏ! Kiểm tra Lịch sử đơn hàng nhé.');
 }
 
-// Gắn event cho radio mua ngay
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('input[name="buy-pay-method"]').forEach(r => {
     r.addEventListener('change', updateBuyPaymentExtra);
@@ -438,11 +438,12 @@ document.addEventListener('DOMContentLoaded', () => {
   updateBuyPaymentExtra();
 });
 
-// Khởi tạo
+
 renderDetail();
 renderRelated();
 updateCartUI();
 </script>
 </body>
 </html>
+
 
