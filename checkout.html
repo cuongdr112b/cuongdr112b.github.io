@@ -1,0 +1,224 @@
+<!DOCTYPE html> 
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thanh toán - ThriftC</title>
+<link rel="stylesheet" href="webchinh.css">
+<script src="products.js"></script>
+<script src="thriftc.js"></script>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo"><a href="webchinh.html">ThriftC</a></div>
+  </div>
+</header>
+
+<main class="checkout fade-in">
+  <h1>Thanh toán đơn hàng</h1>
+  <div class="checkout-grid">
+    <div class="checkout-left">
+      <h3>Thông tin giao hàng</h3>
+      <input type="text" id="name" placeholder="Họ và tên">
+      <input type="text" id="phone" placeholder="Số điện thoại">
+      <input type="text" id="email" placeholder="Email (@gmail.com)">
+      <input type="text" id="address" placeholder="Địa chỉ nhận hàng">
+
+      <!-- PHẦN PHƯƠNG THỨC THANH TOÁN ĐÃ ĐƯỢC LÀM LẠI -->
+      <h3 style="margin-top: 12px;">Phương thức thanh toán</h3>
+      <div class="payment-options" id="payment-options">
+        <label>
+          <input type="radio" name="payment" value="atm" data-label="💳 ATM nội địa" checked>
+          <span>💳 ATM nội địa</span>
+        </label>
+        <label>
+          <input type="radio" name="payment" value="visa" data-label="💳 Visa / MasterCard">
+          <span>💳 Visa / MasterCard</span>
+        </label>
+        <label>
+          <input type="radio" name="payment" value="momo" data-label="💰 Ví Momo">
+          <span>💰 Ví Momo</span>
+        </label>
+        <label>
+          <input type="radio" name="payment" value="cod" data-label="💵 Thanh toán khi nhận">
+          <span>💵 Thanh toán khi nhận</span>
+        </label>
+      </div>
+
+      <!-- Ghi chú thay đổi theo phương thức -->
+      <p class="modal-note" id="payment-note"></p>
+
+      <input type="text" id="coupon" placeholder="Nhập mã giảm giá (nếu có)">
+
+      <button class="btn-primary dragon-btn" onclick="placeOrder()">
+        <span class="dragon-label">Hoàn tất đặt hàng</span>
+        <svg class="dragon-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 32C18 20 30 18 40 22C48 25 54 32 56 40C50 38 44 38 40 40C34 43 30 48 28 56C24 50 20 46 14 44C10 42 8 38 8 32Z"
+                fill="none" stroke="#eab308" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M36 20C38 18 40 16 42 14" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="44" cy="18" r="2" fill="#fefce8"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="checkout-right">
+      <h3>Đơn hàng của bạn</h3>
+      <div class="cart-summary" id="cart-summary">
+        <p>Giỏ hàng của bạn trống.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="success-popup" class="success-popup">
+  <div class="popup-box">
+    <h2>✅ Đặt hàng thành công!</h2>
+    <p>Cảm ơn bạn đã mua sắm tại <strong>ThriftC</strong>.<br>
+    Đơn hàng của bạn đang được xử lý.</p>
+    <button class="btn-primary" onclick="window.location.href='orders.html'">Xem lịch sử đơn hàng</button>
+    <button class="btn-primary" onclick="window.location.href='webchinh.html'">Về trang chủ</button>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 ThriftC · Thanh toán an toàn · Bảo mật thông tin khách hàng</p>
+</footer>
+
+<script>
+const cartData = ThriftC.getCart();
+const cartSummary = document.getElementById('cart-summary');
+
+/* Render giỏ hàng bên phải */
+function renderCart() {
+  if (!cartData || cartData.length === 0) {
+    cartSummary.innerHTML = '<p>Giỏ hàng của bạn trống.</p>';
+    return;
+  }
+  let total = 0;
+  let html = '';
+  cartData.forEach(item => {
+    const subtotal = item.price * item.qty;
+    total += subtotal;
+    html += `
+      <div class="cart-item">
+        <img src="${item.img}" alt="${item.name}">
+        <div>
+          <p>${item.name}</p>
+          <small>${item.qty} x ${ThriftC.formatPrice(item.price)}</small>
+        </div>
+        <div style="margin-left:auto; font-weight:600;">
+          ${ThriftC.formatPrice(subtotal)}
+        </div>
+      </div>`;
+  });
+  const shipping = 30000;
+  const grandTotal = total + shipping;
+  html += `
+    <hr>
+    <p>Phí giao hàng: <strong>${ThriftC.formatPrice(shipping)}</strong></p>
+    <div class="cart-total">
+      <span>Tổng cộng:</span>
+      <strong>${ThriftC.formatPrice(grandTotal)}</strong>
+    </div>`;
+  cartSummary.innerHTML = html;
+}
+
+/* Cập nhật ghi chú theo phương thức thanh toán */
+function updatePaymentNote() {
+  const selected = document.querySelector('input[name="payment"]:checked');
+  const noteEl = document.getElementById('payment-note');
+  if (!selected || !noteEl) return;
+
+  let note = '';
+  switch (selected.value) {
+    case 'atm':
+      note = 'Thanh toán bằng thẻ ATM nội địa qua cổng thanh toán an toàn.';
+      break;
+    case 'visa':
+      note = 'Thanh toán bằng thẻ tín dụng / ghi nợ Visa, MasterCard.';
+      break;
+    case 'momo':
+      note = 'Quét mã hoặc thanh toán trực tiếp qua ví Momo.';
+      break;
+    case 'cod':
+      note = 'Thanh toán khi nhận hàng (COD) – bạn trả tiền cho shipper khi nhận hàng.';
+      break;
+    default:
+      note = '';
+  }
+  noteEl.textContent = note;
+}
+
+/* Hàm đặt hàng */
+function placeOrder() {
+  if (!cartData || cartData.length === 0) {
+    alert('Giỏ hàng trống, không thể đặt hàng.');
+    return;
+  }
+
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const paymentInput = document.querySelector('input[name="payment"]:checked');
+  const payment = paymentInput ? paymentInput.getAttribute('data-label') : '';
+
+  if (!name || !phone || !email || !address || !payment) {
+    alert('⚠️ Vui lòng điền đầy đủ thông tin giao hàng và chọn phương thức thanh toán!');
+    return;
+  }
+
+  if (!ThriftC.validators.isValidName(name)) {
+    alert('❌ Họ và tên chỉ được chứa ký tự chữ (không số, không ký hiệu).');
+    return;
+  }
+  if (!ThriftC.validators.isValidPhone(phone)) {
+    alert('❌ Số điện thoại không hợp lệ (chỉ gồm 9-11 chữ số).');
+    return;
+  }
+  if (!ThriftC.validators.isValidEmail(email)) {
+    alert('❌ Email phải có dạng hợp lệ, ví dụ: tenban@gmail.com');
+    return;
+  }
+
+  let total = 0;
+  cartData.forEach(i => { total += i.price * i.qty; });
+  const shipping = 30000;
+  const grandTotal = total + shipping;
+
+  const orders = JSON.parse(localStorage.getItem('thriftc_orders')) || [];
+  const order = {
+    id: Date.now(),
+    date: new Date().toLocaleString('vi-VN'),
+    items: cartData,
+    total: grandTotal,
+    shipping,
+    payment,   // vẫn lưu đúng text: "💵 Thanh toán khi nhận"...
+    name,
+    phone,
+    email,
+    address,
+    status: 'Đang xử lý'
+  };
+  orders.push(order);
+  localStorage.setItem('thriftc_orders', JSON.stringify(orders));
+  localStorage.removeItem('thriftc_cart');
+
+  document.getElementById('success-popup').style.display = 'flex';
+}
+
+/* Khởi tạo khi load trang */
+document.addEventListener('DOMContentLoaded', function () {
+  renderCart();
+  updatePaymentNote();
+
+  document.addEventListener('change', function (e) {
+    if (e.target.matches('input[name="payment"]')) {
+      updatePaymentNote();
+    }
+  });
+});
+</script>
+</body>
+</html>

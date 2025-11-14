@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký - ThriftC</title>
+  <link rel="stylesheet" href="webchinh.css">
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    .field {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .field input {
+      width: 100%;
+    }
+    .error-msg {
+      color: #f87171;
+      font-size: 0.8rem;
+      min-height: 16px;
+      margin-top: 4px;
+    }
+    .auth-bottom {
+      margin-top: 14px;
+      font-size: 0.9rem;
+    }
+    .auth-bottom a {
+      color: var(--main-green);
+    }
+  </style>
+</head>
+<body class="auth-body">
+<header>
+  <div class="nav">
+    <div class="logo"><a href="webchinh.html">ThriftC</a></div>
+  </div>
+</header>
+
+<main class="auth-container">
+  <div class="auth-box fade-in">
+    <h1>Đăng ký</h1>
+    <p class="auth-slogan">
+      Tạo tài khoản để giữ giỏ hàng, xem lịch sử đơn và săn đồ 2hand xịn xò ✨
+    </p>
+
+    <div class="field">
+      <label for="name">Họ và tên</label>
+      <input type="text" id="name" placeholder="Ví dụ: Nguyễn Haihand">
+      <small id="name-error" class="error-msg"></small>
+    </div>
+
+    <div class="field">
+      <label for="email">Email (@gmail.com)</label>
+      <input type="email" id="email" placeholder="vd: banthu2hand@gmail.com">
+      <small id="email-error" class="error-msg"></small>
+    </div>
+
+    <div class="field">
+      <label for="password">Mật khẩu</label>
+      <input type="password" id="password" placeholder="Tối thiểu 6 ký tự">
+      <small id="password-error" class="error-msg"></small>
+    </div>
+
+    <div class="field">
+      <label for="confirm">Nhập lại mật khẩu</label>
+      <input type="password" id="confirm" placeholder="Nhập lại giống mật khẩu">
+      <small id="confirm-error" class="error-msg"></small>
+    </div>
+
+    <button class="btn-primary dragon-btn" onclick="registerAccount()">
+      <span class="dragon-label">Tạo tài khoản</span>
+      <svg class="dragon-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 32C18 20 30 18 40 22C48 25 54 32 56 40C50 38 44 38 40 40C34 43 30 48 28 56C24 50 20 46 14 44C10 42 8 38 8 32Z"
+              fill="none" stroke="#eab308" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M36 20C38 18 40 16 42 14" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="44" cy="18" r="2" fill="#fefce8"/>
+      </svg>
+    </button>
+
+    <div class="auth-bottom">
+      <span>Đã có tài khoản?</span>
+      <a href="dangnhap.html">Đăng nhập</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 ThriftC · Đăng ký miễn phí.</p>
+</footer>
+
+<!-- NHỚ: phải load thriftc.js TRƯỚC script đăng ký -->
+<script src="products.js"></script>
+<script src="thriftc.js"></script>
+<script>
+function setError(id, msg){
+  document.getElementById(id + '-error').textContent = msg || '';
+}
+
+['name','email','password','confirm'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=> setError(id,''));
+});
+
+function registerAccount(){
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const confirm = document.getElementById('confirm').value.trim();
+
+  // clear lỗi cũ
+  ['name','email','password','confirm'].forEach(id => setError(id,''));
+
+  let valid = true;
+
+  if(!name){
+    setError('name','Vui lòng nhập họ tên.');
+    valid = false;
+  }else if(!ThriftC.validators.isValidName(name)){
+    setError('name','Họ và tên chỉ được chứa chữ (không số, không ký hiệu).');
+    valid = false;
+  }
+
+  if(!email){
+    setError('email','Vui lòng nhập email.');
+    valid = false;
+  }else if(!ThriftC.validators.isValidEmail(email)){
+    setError('email','Email phải có dạng ...@gmail.com.');
+    valid = false;
+  }
+
+  if(!password){
+    setError('password','Vui lòng nhập mật khẩu.');
+    valid = false;
+  }else if(password.length < 6){
+    setError('password','Mật khẩu phải có ít nhất 6 ký tự.');
+    valid = false;
+  }
+
+  if(!confirm){
+    setError('confirm','Vui lòng nhập lại mật khẩu.');
+    valid = false;
+  }else if(password && confirm && password !== confirm){
+    setError('confirm','Mật khẩu nhập lại không khớp.');
+    valid = false;
+  }
+
+  if(!valid) return;
+
+  // Lưu vào danh sách accounts mà admin đang dùng
+  const ok = ThriftC.saveAccount({
+    name,
+    email,
+    password,
+    role: 'user'
+  });
+
+  if(!ok){
+    setError('email','Email này đã được đăng ký. Vui lòng dùng email khác.');
+    return;
+  }
+
+  // Tự đăng nhập sau khi đăng ký
+  ThriftC.setCurrentUser({
+    name,
+    email,
+    role: 'user',
+    createdAt: new Date().toISOString()
+  });
+
+  alert('Đăng ký thành công! Bạn đã được đăng nhập tự động.');
+  window.location.href = 'webchinh.html';
+}
+</script>
+</body>
+</html>

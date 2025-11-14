@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch sử đơn hàng - ThriftC</title>
+<link rel="stylesheet" href="webchinh.css">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Style nhỏ riêng cho filter (tận dụng biến màu có sẵn) -->
+<style>
+  .orders-filter {
+    max-width: 900px;
+    margin: 0 auto 16px;
+    padding: 0 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+  .orders-filter-label {
+    color: var(--gray-text);
+    margin-right: 4px;
+  }
+  .orders-filter button {
+    border-radius: 999px;
+    padding: 4px 10px;
+    border: 1px solid var(--gray-text);
+    background: transparent;
+    color: var(--gray-text);
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .orders-filter button.active {
+    border-color: var(--main-green);
+    background: var(--main-green);
+    color: #000;
+  }
+
+  @media (max-width: 480px) {
+    .orders-filter {
+      padding-inline: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo"><a href="webchinh.html">ThriftC</a></div>
+    <div class="nav-right">
+      <button id="logout-btn" class="nav-link-auth nav-link-auth-primary">Đăng xuất</button>
+    </div>
+  </div>
+</header>
+
+<main class="fade-in orders-page">
+  <h1>Lịch sử đơn hàng</h1>
+
+  <!-- THANH FILTER TRẠNG THÁI -->
+  <div class="orders-filter" id="orders-filter">
+    <span class="orders-filter-label">Lọc theo trạng thái:</span>
+    <button type="button" data-status="all" class="active">Tất cả</button>
+    <button type="button" data-status="Chờ thanh toán">Chờ thanh toán</button>
+    <button type="button" data-status="Đang xử lý">Đang xử lý</button>
+    <button type="button" data-status="Đã hoàn thành">Đã hoàn thành</button>
+    <button type="button" data-status="Đã hủy">Đã hủy</button>
+  </div>
+
+  <div id="orders-container"></div>
+</main>
+
+<footer>
+  <p>© 2025 ThriftC · Lịch sử mua hàng.</p>
+</footer>
+
+<!-- MODAL CHI TIẾT ĐƠN -->
+<div id="order-detail-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" id="order-detail-close">×</span>
+    <h2>Chi tiết đơn hàng</h2>
+    <div id="order-detail-body" style="max-height:60vh;overflow-y:auto;font-size:0.9rem;"></div>
+  </div>
+</div>
+
+<script src="products.js"></script>
+<script src="thriftc.js"></script>
+<script>
+const user = ThriftC.getCurrentUser();
+const container = document.getElementById('orders-container');
+const filterBar = document.getElementById('orders-filter');
+
+const detailModal = document.getElementById('order-detail-modal');
+const detailClose = document.getElementById('order-detail-close');
+const detailBody  = document.getElementById('order-detail-body');
+
+let gUserOrders = [];   // tất cả đơn của user (kể cả dạng cũ + mới)
+let gCurrentFilter = 'all';
+
+if (!user) {
+  alert('Vui lòng đăng nhập để xem lịch sử đơn hàng.');
+  location.href = 'dangnhap.html';
+} else {
+  initOrders();
+}
+
+function initOrders() {
+  const userEmail = user.email;
+
+  // Đơn kiểu mới (per-user key: thriftc_orders_<email>)
+  const perUserOrders = ThriftC.getOrders() || [];
+
+  // Đơn kiểu cũ (key chung: thriftc_orders) – lọc theo email user
+  const legacyAll = JSON.parse(localStorage.getItem('thriftc_orders') || '[]');
+  const legacyForUser = legacyAll.filter(o =>
+    (o.email && o.email === userEmail) ||
+    (o.user && o.user === userEmail)
+  );
+
+  // Gộp lại
+  gUserOrders = [...perUserOrders, ...legacyForUser];
+
+  if (!gUserOrders.length) {
+    container.innerHTML = '<p>Bạn chưa có đơn hàng nào. <a href="webchinh.html">Mua ngay!</a></p>';
+    return;
+  }
+
+  renderOrders(); // mặc định: all
+}
+
+/**
+ * Render danh sách đơn theo filter hiện tại
+ * filterStatus: 'all' hoặc text status ví dụ 'Đang xử lý'
+ */
+function renderOrders(filterStatus = gCurrentFilter) {
+  gCurrentFilter = filterStatus;
+
+  if (!gUserOrders.length) {
+    container.innerHTML = '<p>Bạn chưa có đơn hàng nào. <a href="webchinh.html">Mua ngay!</a></p>';
+    return;
+  }
+
+  // Lọc theo trạng thái
+  let list = gUserOrders.slice(); // copy
+  if (filterStatus !== 'all') {
+    list = list.filter(o => {
+      const status = (o.status || 'Đang xử lý').toLowerCase();
+      return status === filterStatus.toLowerCase();
+    });
+  }
+
+  if (!list.length) {
+    container.innerHTML = '<p>Không có đơn hàng với trạng thái này.</p>';
+    return;
+  }
+
+  // Đơn mới nhất trước
+  const html = list.slice().reverse().map(o => {
+    const status = o.status || 'Đang xử lý';
+    const payment = o.payment || 'Chưa rõ';
+    const total = typeof o.total === 'number' ? ThriftC.formatPrice(o.total) : (o.total || '');
+    const shipping = typeof o.shipping === 'number'
+      ? ThriftC.formatPrice(o.shipping)
+      : (o.shipping || '');
+
+    const dateText = o.date ||
+      (o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : '');
+
+    const name = o.name || (o.customer && o.customer.name) || '';
+    const phone = o.phone || (o.customer && o.customer.phone) || '';
+    const address = o.address || (o.customer && o.customer.address) || '';
+
+    let statusColor = 'var(--main-green)';
+    const stLower = status.toLowerCase();
+    if (stLower.includes('hủy')) {
+      statusColor = 'var(--danger)';
+    } else if (stLower.includes('hoàn')) {
+      statusColor = '#22c55e';          // xanh lá hoàn thành
+    } else if (stLower.includes('chờ')) {
+      statusColor = '#fbbf24';          // vàng cho "chờ thanh toán"
+    }
+
+    let itemsHTML = '';
+    (o.items || []).forEach(i => {
+      itemsHTML += `
+        <div class="order-item">
+          <img src="${i.img}" alt="${i.name}">
+          <div class="order-item-info">
+            <p><strong>${i.name}</strong></p>
+            <p>${i.qty} x ${ThriftC.formatPrice(i.price)}</p>
+          </div>
+        </div>`;
+    });
+
+    // Note riêng cho các đơn chuyển khoản / ví
+    let paymentNote = '';
+    if (stLower.includes('chờ')) {
+      paymentNote = `
+        <span style="display:block;font-size:0.8rem;color:var(--gray-text);margin-top:2px;">
+          Đơn sẽ được xử lý sau khi shop xác nhận đã nhận đủ số tiền thanh toán.
+        </span>`;
+    }
+
+    const globalIndex = gUserOrders.indexOf(o); // để mở chi tiết
+
+    return `
+      <div class="order-card">
+        <div class="order-header">
+          <span><strong>Mã đơn:</strong> #${o.id}</span>
+          <span>${dateText}</span>
+        </div>
+
+        <div class="order-header" style="margin-top:4px; font-size:0.85rem;">
+          <span>
+            Trạng thái:
+            <span class="btn-small" style="border-color:${statusColor}; color:${statusColor};">
+              ${status}
+            </span>
+          </span>
+          <span>
+            Hình thức thanh toán:
+            <span class="btn-small">
+              ${payment}
+            </span>
+          </span>
+        </div>
+        ${paymentNote}
+
+        <div class="order-items">
+          ${itemsHTML}
+        </div>
+
+        <div class="order-total">
+          <div>
+            <span style="display:block; color:var(--gray-text);">
+              Giao đến:
+            </span>
+            <span style="display:block;">
+              <strong>${name || '(không tên)'}</strong> ${phone ? '· ' + phone : ''}
+            </span>
+            ${address ? `<span style="display:block; font-size:0.85rem; color:var(--gray-text);">${address}</span>` : ''}
+            ${shipping ? `<span style="display:block; font-size:0.85rem; color:var(--gray-text);">Phí giao hàng: ${shipping}</span>` : ''}
+          </div>
+          <div style="text-align:right;">
+            <span style="display:block;margin-bottom:4px;"><strong>Tổng: ${total}</strong></span>
+            <button
+              type="button"
+              class="btn-small btn-view-detail"
+              data-global-index="${globalIndex}">
+              Xem chi tiết
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+/* Mở popup chi tiết đơn */
+function openOrderDetail(globalIndex) {
+  const order = gUserOrders[globalIndex];
+  if (!order) return;
+
+  const status = order.status || 'Đang xử lý';
+  const total = typeof order.total === 'number'
+      ? ThriftC.formatPrice(order.total)
+      : (order.total || '');
+  const shipping = typeof order.shipping === 'number'
+      ? ThriftC.formatPrice(order.shipping)
+      : (order.shipping || '');
+  const dateText = order.date ||
+      (order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : '');
+  const payment = order.payment || 'Chưa rõ';
+
+  const name = order.name || (order.customer && order.customer.name) || '';
+  const email = order.email || order.user || '';
+  const phone = order.phone || (order.customer && order.customer.phone) || '';
+  const address = order.address || (order.customer && order.customer.address) || '';
+
+  let itemsHTML = '';
+  (order.items || []).forEach(i => {
+    const sub = i.price * i.qty;
+    itemsHTML += `
+      <div class="cart-item" style="margin-bottom:8px;">
+        <img src="${i.img}" alt="${i.name}">
+        <div>
+          <div><strong>${i.name}</strong></div>
+          <small>${i.qty} x ${ThriftC.formatPrice(i.price)}</small>
+        </div>
+        <div style="margin-left:auto;font-weight:600;">
+          ${ThriftC.formatPrice(sub)}
+        </div>
+      </div>`;
+  });
+
+  detailBody.innerHTML = `
+    <p><strong>Mã đơn:</strong> #${order.id}</p>
+    <p><strong>Ngày tạo:</strong> ${dateText}</p>
+    <p><strong>Trạng thái:</strong> ${status}</p>
+    <p><strong>Hình thức thanh toán:</strong> ${payment}</p>
+    ${shipping ? `<p><strong>Phí giao hàng:</strong> ${shipping}</p>` : ''}
+    <hr>
+    <p><strong>Khách hàng:</strong> ${name || '(không tên)'}</p>
+    <p><strong>Email:</strong> ${email || '-'}</p>
+    <p><strong>Số điện thoại:</strong> ${phone || '-'}</p>
+    <p><strong>Địa chỉ:</strong> ${address || '-'}</p>
+    <hr>
+    <p><strong>Sản phẩm:</strong></p>
+    ${itemsHTML || '<p>Không có sản phẩm.</p>'}
+    <hr>
+    <p><strong>Tổng đơn:</strong> ${total}</p>
+  `;
+
+  detailModal.style.display = 'flex';
+}
+
+function closeOrderDetail() {
+  detailModal.style.display = 'none';
+}
+
+/* Click filter button */
+filterBar.addEventListener('click', function (e) {
+  if (e.target.tagName.toLowerCase() === 'button') {
+    const status = e.target.getAttribute('data-status') || 'all';
+
+    // toggle active class
+    [...filterBar.querySelectorAll('button')].forEach(btn => btn.classList.remove('active'));
+    e.target.classList.add('active');
+
+    renderOrders(status);
+  }
+});
+
+/* Click xem chi tiết (event delegation) */
+container.addEventListener('click', function (e) {
+  const btn = e.target.closest('.btn-view-detail');
+  if (!btn) return;
+  const idx = parseInt(btn.getAttribute('data-global-index'), 10);
+  if (!isNaN(idx)) {
+    openOrderDetail(idx);
+  }
+});
+
+/* Đóng modal chi tiết */
+if (detailClose) {
+  detailClose.addEventListener('click', closeOrderDetail);
+}
+detailModal.addEventListener('click', function (e) {
+  if (e.target === detailModal) closeOrderDetail();
+});
+
+/* Logout */
+document.getElementById('logout-btn').addEventListener('click', () => {
+  ThriftC.logout();
+  location.href = 'dangnhap.html';
+});
+</script>
+</body>
+</html>

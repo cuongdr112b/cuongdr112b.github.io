@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quên mật khẩu - ThriftC</title>
+  <link rel="stylesheet" href="webchinh.css">
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    .field {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .field input {
+      width: 100%;
+    }
+    .error-msg {
+      color: #f87171;
+      font-size: 0.8rem;
+      min-height: 16px;
+      margin-top: 4px;
+    }
+    .info-msg {
+      color: #a7f3d0;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+    .auth-bottom {
+      margin-top: 14px;
+      font-size: 0.9rem;
+    }
+    .auth-bottom a {
+      color: var(--main-green);
+    }
+  </style>
+</head>
+<body class="auth-body">
+<header>
+  <div class="nav">
+    <div class="logo"><a href="webchinh.html">ThriftC</a></div>
+  </div>
+</header>
+
+<main class="auth-container">
+  <div class="auth-box fade-in">
+    <h1>Quên mật khẩu</h1>
+    <p class="auth-slogan">
+      Nhập email bạn đã đăng ký để nhận hướng dẫn đặt lại mật khẩu. <br>
+    </p>
+
+    <div class="field">
+      <label for="email">Email đăng ký (@gmail.com)</label>
+      <input type="email" id="email" placeholder="vd: banthu2hand@gmail.com">
+      <small id="email-error" class="error-msg"></small>
+    </div>
+
+    <button class="btn-primary dragon-btn" onclick="sendReset()">
+      <span class="dragon-label">Gửi hướng dẫn đặt lại</span>
+      <svg class="dragon-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 32C18 20 30 18 40 22C48 25 54 32 56 40C50 38 44 38 40 40C34 43 30 48 28 56C24 50 20 46 14 44C10 42 8 38 8 32Z"
+              fill="none" stroke="#eab308" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M36 20C38 18 40 16 42 14" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="44" cy="18" r="2" fill="#fefce8"/>
+      </svg>
+    </button>
+
+    <div id="info-msg" class="info-msg"></div>
+
+    <div class="auth-bottom">
+      <a href="dangnhap.html">Quay lại đăng nhập</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 ThriftC · Hỗ trợ tài khoản.</p>
+</footer>
+
+<script src="products.js"></script>
+<script src="thriftc.js"></script>
+<script>
+function setError(msg){
+  document.getElementById('email-error').textContent = msg || '';
+}
+function setInfo(msg){
+  document.getElementById('info-msg').textContent = msg || '';
+}
+
+document.getElementById('email').addEventListener('input', ()=>{
+  setError('');
+  setInfo('');
+});
+
+function sendReset(){
+  const email = document.getElementById('email').value.trim();
+  setError('');
+  setInfo('');
+
+  if(!email){
+    setError('Vui lòng nhập email.');
+    return;
+  }
+  if(!ThriftC.validators.isValidEmail(email)){
+    setError('Email phải có dạng ...@gmail.com.');
+    return;
+  }
+
+  const list = ThriftC.getAccounts();
+  const found = list.find(acc => acc.email === email);
+
+  if(!found){
+    setError('Email này chưa được đăng ký trên ThriftC.');
+    return;
+  }
+
+  // Fake: chỉ báo thành công
+  setInfo('Đã gửi hướng dẫn đặt lại mật khẩu tới ' + email + '');
+  alert('Đã gửi hướng dẫn đặt lại mật khẩu. Kiểm tra email ' + email + ' nhé.');
+}
+</script>
+</body>
+</html>

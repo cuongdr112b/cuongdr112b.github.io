@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - ThriftC</title>
+  <link rel="stylesheet" href="webchinh.css">
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Style nhỏ cho lỗi form -->
+  <style>
+    .field {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .field input {
+      width: 100%;
+    }
+    .error-msg {
+      color: #f87171;
+      font-size: 0.8rem;
+      min-height: 16px;
+      margin-top: 4px;
+    }
+    .auth-bottom {
+      margin-top: 14px;
+      font-size: 0.9rem;
+    }
+    .auth-bottom a {
+      color: var(--main-green);
+    }
+    .auth-links-inline {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+    .auth-links-inline a {
+      color: var(--main-green);
+    }
+  </style>
+</head>
+<body class="auth-body">
+<header>
+  <div class="nav">
+    <div class="logo"><a href="webchinh.html">ThriftC</a></div>
+  </div>
+</header>
+
+<main class="auth-container">
+  <div class="auth-box fade-in">
+    <h1>Đăng nhập</h1>
+    <p class="auth-slogan">
+      Chào mừng quay lại với <strong>ThriftC</strong>.<br>
+      HaiHand cũ nhưng chất 🔥
+    </p>
+
+    <div class="field">
+      <label for="email">Email (@gmail.com hoặc admin@thriftc.com)</label>
+      <input type="email" id="email" placeholder="vd: banthu2hand@gmail.com">
+      <small id="email-error" class="error-msg"></small>
+    </div>
+
+    <div class="field">
+      <label for="password">Mật khẩu</label>
+      <input type="password" id="password" placeholder="Nhập mật khẩu">
+      <small id="password-error" class="error-msg"></small>
+    </div>
+
+    <button class="btn-primary dragon-btn" onclick="login()">
+      <span class="dragon-label">Đăng nhập</span>
+      <svg class="dragon-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 32C18 20 30 18 40 22C48 25 54 32 56 40C50 38 44 38 40 40C34 43 30 48 28 56C24 50 20 46 14 44C10 42 8 38 8 32Z"
+              fill="none" stroke="#eab308" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M36 20C38 18 40 16 42 14" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="44" cy="18" r="2" fill="#fefce8"/>
+      </svg>
+    </button>
+
+    <div class="auth-links-inline">
+      <span>Chưa có tài khoản? <a href="dangky.html">Đăng ký</a></span>
+      <a href="quenmatkhau.html">Quên mật khẩu?</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© 2025 ThriftC · Đăng nhập an toàn.</p>
+</footer>
+
+<script src="products.js"></script>
+<script src="thriftc.js"></script>
+<script>
+function setError(id, msg){
+  document.getElementById(id + '-error').textContent = msg || '';
+}
+
+['email','password'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=> setError(id, ''));
+});
+
+function login(){
+  const emailRaw = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const email = emailRaw.toLowerCase();
+
+  // clear lỗi cũ
+  setError('email','');
+  setError('password','');
+
+  let valid = true;
+
+  if(!email){
+    setError('email','Vui lòng nhập email.');
+    valid = false;
+  }else{
+    const isAdminEmail = (email === 'admin@thriftc.com');
+    // User thường vẫn phải là @gmail.com, riêng admin thì bỏ qua validator gmail
+    if(!isAdminEmail && !ThriftC.validators.isValidEmail(emailRaw)){
+      setError('email','Email phải có dạng ...@gmail.com (hoặc admin@thriftc.com).');
+      valid = false;
+    }
+  }
+
+  if(!password){
+    setError('password','Vui lòng nhập mật khẩu.');
+    valid = false;
+  }
+
+  if(!valid) return;
+
+  const list = ThriftC.getAccounts();
+  const found = list.find(acc =>
+    (acc.email || '').toLowerCase() === email &&
+    acc.password === password
+  );
+
+  if(!found){
+    setError('password','Email hoặc mật khẩu không đúng.');
+    return;
+  }
+
+  // Lưu user hiện tại
+  ThriftC.setCurrentUser({
+    name: found.name,
+    email: found.email,
+    role: found.role || (found.email === 'admin@thriftc.com' ? 'admin' : 'user'),
+    createdAt: found.createdAt
+  });
+
+  // Nếu là admin → vào admin.html
+  if(ThriftC.isAdmin(found)){
+    alert('Đăng nhập admin thành công!');
+    window.location.href = 'admin.html';
+  }else{
+    alert('Đăng nhập thành công!');
+    window.location.href = 'webchinh.html';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThriftC | Quản lý tài khoản & đơn hàng</title>
+  <link rel="stylesheet" href="webchinh.css">
+
+  <!-- Style nhỏ riêng cho filter đơn hàng -->
+  <style>
+    .admin-orders-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+    .admin-orders-filter-label {
+      color: var(--gray-text);
+      margin-right: 4px;
+    }
+    .admin-orders-filter input {
+      flex: 1;
+      min-width: 200px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #020617;
+      color: var(--light-text);
+      font-size: 0.9rem;
+    }
+    .admin-orders-filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .admin-orders-filter-btn {
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid var(--gray-text);
+      background: transparent;
+      color: var(--gray-text);
+      cursor: pointer;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    .admin-orders-filter-btn.active {
+      border-color: var(--main-green);
+      background: var(--main-green);
+      color: #000;
+    }
+
+    @media (max-width: 480px) {
+      .admin-orders-filter {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .admin-orders-filter-buttons {
+        justify-content: flex-start;
+      }
+    }
+
+    /* Bảng trong admin cuộn ngang được trên màn nhỏ */
+    .admin-orders-table-wrapper {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo"><a href="webchinh.html">ThriftC</a></div>
+    <h2 style="font-size:1.2rem;">Quản lý tài khoản & đơn hàng</h2>
+    <div class="nav-right">
+      <span class="nav-user" id="admin-user-label"></span>
+      <button id="back-home-btn" class="nav-link-auth">Về trang chính</button>
+      <button id="logout-btn" class="nav-link-auth nav-link-auth-primary">Đăng xuất</button>
+    </div>
+  </div>
+</header>
+
+<main class="fade-in" style="max-width:1000px;margin:30px auto 40px;padding:0 16px;">
+  <p class="products-sub">
+    Trang này chỉ dành cho quản trị viên (<strong>admin@thriftc.com</strong> hoặc tài khoản có <code>role: "admin"</code>).
+  </p>
+
+  <!-- TÌM KIẾM TÀI KHOẢN -->
+  <input
+    type="text"
+    id="search"
+    placeholder="Tìm kiếm theo tên hoặc email..."
+    style="width:100%;padding:8px;border-radius:8px;border:1px solid #333;background:#111827;color:#fff;margin:12px 0 18px;"
+  >
+
+  <!-- Thông tin admin + thống kê -->
+  <div id="account-info" style="margin-bottom:10px;color:#9ca3af;font-size:0.9rem;"></div>
+
+  <!-- DANH SÁCH TÀI KHOẢN -->
+  <div id="account-list"></div>
+
+  <!-- QUẢN LÝ ĐƠN HÀNG -->
+  <div id="orders-admin" style="margin-top:26px;"></div>
+</main>
+
+<footer>
+  <p>© 2025 ThriftC - Trang quản lý tài khoản & đơn hàng.</p>
+</footer>
+
+<!-- MODAL CHI TIẾT ĐƠN HÀNG -->
+<div id="order-detail-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" id="order-detail-close">&times;</span>
+    <h2>Chi tiết đơn hàng</h2>
+    <div id="order-detail-body" style="max-height:60vh;overflow-y:auto;font-size:0.9rem;"></div>
+  </div>
+</div>
+
+<script src="products.js"></script>
+<script src="thriftc.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
