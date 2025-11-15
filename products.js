@@ -1,5 +1,3 @@
-// products.js
-// Dữ liệu sản phẩm dùng chung cho toàn bộ website ThriftC
 
 const THRIFTC_PRODUCTS = [
   {
@@ -35,4 +33,5 @@ const THRIFTC_PRODUCTS = [
     desc: "Hoodie Bape Shark 2hand, zip full, nỉ dày, logo sắc nét, fit oversize, lên đồ cực ngầu."
   }
 ];
+
 
