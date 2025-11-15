@@ -6,8 +6,7 @@
 <title>Lịch sử đơn hàng - ThriftC</title>
 <link rel="stylesheet" href="webchinh.css">
 <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Style nhỏ riêng cho filter (tận dụng biến màu có sẵn) -->
+  
 <style>
   .orders-filter {
     max-width: 900px;
@@ -58,7 +57,6 @@
 <main class="fade-in orders-page">
   <h1>Lịch sử đơn hàng</h1>
 
-  <!-- THANH FILTER TRẠNG THÁI -->
   <div class="orders-filter" id="orders-filter">
     <span class="orders-filter-label">Lọc theo trạng thái:</span>
     <button type="button" data-status="all" class="active">Tất cả</button>
@@ -75,7 +73,7 @@
   <p>© 2025 ThriftC · Lịch sử mua hàng.</p>
 </footer>
 
-<!-- MODAL CHI TIẾT ĐƠN -->
+
 <div id="order-detail-modal" class="modal">
   <div class="modal-content">
     <span class="close-btn" id="order-detail-close">×</span>
@@ -108,17 +106,17 @@ if (!user) {
 function initOrders() {
   const userEmail = user.email;
 
-  // Đơn kiểu mới (per-user key: thriftc_orders_<email>)
+
   const perUserOrders = ThriftC.getOrders() || [];
 
-  // Đơn kiểu cũ (key chung: thriftc_orders) – lọc theo email user
+
   const legacyAll = JSON.parse(localStorage.getItem('thriftc_orders') || '[]');
   const legacyForUser = legacyAll.filter(o =>
     (o.email && o.email === userEmail) ||
     (o.user && o.user === userEmail)
   );
 
-  // Gộp lại
+ 
   gUserOrders = [...perUserOrders, ...legacyForUser];
 
   if (!gUserOrders.length) {
@@ -129,10 +127,7 @@ function initOrders() {
   renderOrders(); // mặc định: all
 }
 
-/**
- * Render danh sách đơn theo filter hiện tại
- * filterStatus: 'all' hoặc text status ví dụ 'Đang xử lý'
- */
+
 function renderOrders(filterStatus = gCurrentFilter) {
   gCurrentFilter = filterStatus;
 
@@ -141,7 +136,7 @@ function renderOrders(filterStatus = gCurrentFilter) {
     return;
   }
 
-  // Lọc theo trạng thái
+
   let list = gUserOrders.slice(); // copy
   if (filterStatus !== 'all') {
     list = list.filter(o => {
@@ -155,7 +150,7 @@ function renderOrders(filterStatus = gCurrentFilter) {
     return;
   }
 
-  // Đơn mới nhất trước
+ 
   const html = list.slice().reverse().map(o => {
     const status = o.status || 'Đang xử lý';
     const payment = o.payment || 'Chưa rõ';
@@ -193,7 +188,7 @@ function renderOrders(filterStatus = gCurrentFilter) {
         </div>`;
     });
 
-    // Note riêng cho các đơn chuyển khoản / ví
+    
     let paymentNote = '';
     if (stLower.includes('chờ')) {
       paymentNote = `
@@ -258,7 +253,7 @@ function renderOrders(filterStatus = gCurrentFilter) {
   container.innerHTML = html;
 }
 
-/* Mở popup chi tiết đơn */
+
 function openOrderDetail(globalIndex) {
   const order = gUserOrders[globalIndex];
   if (!order) return;
@@ -333,7 +328,7 @@ filterBar.addEventListener('click', function (e) {
   }
 });
 
-/* Click xem chi tiết (event delegation) */
+
 container.addEventListener('click', function (e) {
   const btn = e.target.closest('.btn-view-detail');
   if (!btn) return;
@@ -343,7 +338,7 @@ container.addEventListener('click', function (e) {
   }
 });
 
-/* Đóng modal chi tiết */
+
 if (detailClose) {
   detailClose.addEventListener('click', closeOrderDetail);
 }
@@ -351,7 +346,7 @@ detailModal.addEventListener('click', function (e) {
   if (e.target === detailModal) closeOrderDetail();
 });
 
-/* Logout */
+
 document.getElementById('logout-btn').addEventListener('click', () => {
   ThriftC.logout();
   location.href = 'dangnhap.html';
@@ -359,3 +354,4 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
