@@ -96,7 +96,7 @@
   <p>© 2025 ThriftC · Đăng ký miễn phí.</p>
 </footer>
 
-<!-- NHỚ: phải load thriftc.js TRƯỚC script đăng ký -->
+
 <script src="products.js"></script>
 <script src="thriftc.js"></script>
 <script>
@@ -115,7 +115,7 @@ function registerAccount(){
   const password = document.getElementById('password').value.trim();
   const confirm = document.getElementById('confirm').value.trim();
 
-  // clear lỗi cũ
+
   ['name','email','password','confirm'].forEach(id => setError(id,''));
 
   let valid = true;
@@ -154,7 +154,7 @@ function registerAccount(){
 
   if(!valid) return;
 
-  // Lưu vào danh sách accounts mà admin đang dùng
+ 
   const ok = ThriftC.saveAccount({
     name,
     email,
@@ -167,7 +167,7 @@ function registerAccount(){
     return;
   }
 
-  // Tự đăng nhập sau khi đăng ký
+
   ThriftC.setCurrentUser({
     name,
     email,
@@ -181,4 +181,5 @@ function registerAccount(){
 </script>
 </body>
 </html>
+
 
