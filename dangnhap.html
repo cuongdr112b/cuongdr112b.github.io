@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="webchinh.css">
   <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Style nhỏ cho lỗi form -->
+
   <style>
     .field {
       width: 100%;
@@ -113,7 +113,6 @@ function login(){
   const password = document.getElementById('password').value.trim();
   const email = emailRaw.toLowerCase();
 
-  // clear lỗi cũ
   setError('email','');
   setError('password','');
 
@@ -124,7 +123,7 @@ function login(){
     valid = false;
   }else{
     const isAdminEmail = (email === 'admin@thriftc.com');
-    // User thường vẫn phải là @gmail.com, riêng admin thì bỏ qua validator gmail
+  
     if(!isAdminEmail && !ThriftC.validators.isValidEmail(emailRaw)){
       setError('email','Email phải có dạng ...@gmail.com (hoặc admin@thriftc.com).');
       valid = false;
@@ -149,7 +148,7 @@ function login(){
     return;
   }
 
-  // Lưu user hiện tại
+
   ThriftC.setCurrentUser({
     name: found.name,
     email: found.email,
@@ -157,7 +156,7 @@ function login(){
     createdAt: found.createdAt
   });
 
-  // Nếu là admin → vào admin.html
+ 
   if(ThriftC.isAdmin(found)){
     alert('Đăng nhập admin thành công!');
     window.location.href = 'admin.html';
@@ -169,4 +168,5 @@ function login(){
 </script>
 </body>
 </html>
+
 
